@@ -3,7 +3,7 @@ import os
 import signal
 import threading
 
-import requests
+import httpx
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -58,12 +58,13 @@ def create_mcp_server():
         :return: URL of the generated chart image.
         """
         try:
-            response = await requests.post(
-                f"http://{server_host}:{server_port}/generate_chart",
-                json={"code": code},
-            )
-            response.raise_for_status()  # Raise an error for bad responses
-            return response.json()
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"http://{server_host}:{server_port}/generate_chart",
+                    json={"code": code},
+                    headers={"Content-Type": "application/json"},
+                )
+                return response.json()
         except Exception as e:
             return {"error": str(e)}
 
